@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anaweza Cohort Cost Projector</title>
+<style>
+  :root{--teal:#1F4E5F;--bridge:#4CA778;--ink:#222;--muted:#666;--line:#e2e6e9;--bg:#f7f9fa;--warn:#C0504E;}
+  *{box-sizing:border-box}
+  body{font-family:Arial,Helvetica,sans-serif;color:var(--ink);margin:0;background:#fff;line-height:1.45}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px}
+  h1{color:var(--teal);font-size:23px;margin:0 0 4px}
+  h2{color:var(--bridge);font-size:16px;margin:20px 0 8px;border-bottom:2px solid var(--line);padding-bottom:4px}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+  .card{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+  label{font-size:12px;font-weight:bold;color:var(--teal);display:block;margin-bottom:2px}
+  select,input{padding:5px 6px;border:1px solid #c8ced2;border-radius:5px;font-size:13px;font-family:inherit}
+  input[type=number]{width:90px}
+  .settings{display:flex;flex-wrap:wrap;gap:12px}.settings>div{flex:0 0 auto}
+  .cohort{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px;background:#fff}
+  .cohort h3{margin:0 0 4px;font-size:15px;color:var(--teal);display:flex;align-items:center;gap:8px}
+  .cohort h3 input{font-size:14px;font-weight:bold;width:240px}
+  .cmeta{font-size:12px;color:var(--muted);margin:2px 0 8px}
+  .cmeta b{color:var(--teal);font-size:14px}
+  table.groups{width:100%;border-collapse:collapse;font-size:12px}
+  table.groups th{background:var(--teal);color:#fff;padding:4px 5px;font-size:11px;text-align:left}
+  table.groups td{padding:3px 5px;border-bottom:1px solid var(--line)}
+  table.groups select,table.groups input{font-size:12px;padding:3px 4px}
+  .btn{background:var(--bridge);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:13px;font-weight:bold;cursor:pointer}
+  .btn.sm{padding:3px 8px;font-size:12px}.btn.ghost{background:#fff;color:var(--teal);border:1px solid var(--bridge)}
+  .x{color:var(--warn);cursor:pointer;font-weight:bold;border:none;background:none;font-size:14px}
+  .kpis{display:flex;gap:14px;flex-wrap:wrap}.kpis>div{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:160px}
+  .kpis .lab{font-size:11px;color:var(--muted);text-transform:uppercase}.kpis .v{font-size:21px;font-weight:bold;color:var(--teal)}
+  .cohortTotals{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0}
+  .cohortTotals .ct{border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px}.cohortTotals .ct b{display:block;font-size:15px}
+  .note{font-size:12px;color:var(--muted)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;margin:6px 0}.legend span{display:inline-flex;align-items:center;gap:5px}
+  .sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+  .breakdown{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+  .bdbar{height:26px;border-radius:5px;overflow:hidden;display:flex;min-width:280px;flex:1;border:1px solid var(--line)}.bdbar div{height:100%}
+  details{margin-top:10px;font-size:12.5px}summary{cursor:pointer;font-weight:bold;color:var(--teal)}
+  details details{margin-left:10px}details details summary{color:var(--bridge);font-weight:bold}
+  table.ref{border-collapse:collapse;font-size:12px;margin:6px 0}
+  table.ref th,table.ref td{border:1px solid var(--line);padding:4px 8px;text-align:right}table.ref th:first-child,table.ref td:first-child{text-align:left}
+  table.ref th{background:var(--teal);color:#fff}
+  .src{font-size:11px;color:var(--muted)}.src a{color:var(--teal)}
+  .info{display:inline-block;width:14px;height:14px;line-height:14px;text-align:center;border-radius:50%;background:#9bb0bb;color:#fff;font-size:10px;cursor:help;margin-left:4px;font-weight:bold}
+  .gl{font-size:12.5px}.gl b{color:var(--teal)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Anaweza Cohort Cost Projector</h1>
+  <p class="sub">Builds named Generations from class-groups across the full ladder (Lower Primary to postgraduate, plus a Graduated support state), advances each scholar year by year until they age out, and shows the cost per cohort per year and for the whole organization. Hover any <span class="info" title="This is an information icon. Hover the icons throughout the tool for plain explanations of each input and how it drives cost.">i</span> for help. Planning tool, figures verified June 2026, 128 KES = 1 USD assumed.</p>
+
+  <div class="card">
+    <h2 style="margin-top:0">Global settings</h2>
+    <div class="settings">
+      <div><label>Placement <span class="info" title="Government-placed (KUCCPS) students get scholarships and loans. Self / private students get none and pay full tuition, the most expensive case.">i</span></label><select id="placement"><option value="gov">Government-placed</option><option value="self">Self / private</option></select></div>
+      <div><label>Loan policy <span class="info" title="Household share only: the student takes HELB loans and Anaweza pays only the household portion plus the living gap. Anaweza covers loans: Anaweza also pays the loan portions so the graduate leaves debt-free, which costs more now.">i</span></label><select id="loans"><option value="share">Household share only</option><option value="full">Anaweza covers loans</option></select></div>
+      <div><label>Living KES/mo <span class="info" title="Monthly living stipend per scholar (food, housing, transport, personal). Also the rate used for the Employment Bridge and Graduated support.">i</span></label><input type="number" id="livingMo" value="10500" step="500"></div>
+      <div><label>Bridge months <span class="info" title="Employment Bridge: months of living support paid once when a scholar finishes their education (secondary, college, or postgraduate) inside the projection, covering the gap to the first paycheck.">i</span></label><input type="number" id="bridgeMo" value="3"></div>
+      <div><label>Setup USD <span class="info" title="One-time cost when a scholar enters higher education, for furniture and setting up a dorm or apartment.">i</span></label><input type="number" id="setupUSD" value="500" step="50"></div>
+      <div><label>FX (KES/USD) <span class="info" title="Exchange rate used to convert shillings to dollars throughout.">i</span></label><input type="number" id="fx" value="128"></div>
+      <div><label>Start year</label><input type="number" id="startYear" value="2027"></div>
+      <div><label>Years to project <span class="info" title="How many years the chart and organization totals cover. Note: each cohort's Lifetime cost is computed over the full education path regardless of this window.">i</span></label><input type="number" id="horizon" value="12" min="1" max="25"></div>
+      <div><label>Manual college cost USD/yr <span class="info" title="The dollar figure used by any cohort whose Funding is set to Manual. Each such cohort charges this all-in amount per university year to Anaweza, overriding the band and funding-model math. Pick Manual in a cohort header to use it. TVET, masters and specialty keep their modeled costs; the one-time setup and Employment Bridge still apply.">i</span></label><input type="number" id="manualCollegeUSD" value="1960" step="50"></div>
+    </div>
+    <details>
+      <summary>Cost assumptions (editable)</summary>
+      <div class="settings" style="margin-top:10px">
+        <div><label>Lower Primary $/yr</label><input type="number" id="a_lower" value="500"></div>
+        <div><label>Upper Primary $/yr</label><input type="number" id="a_upper" value="550"></div>
+        <div><label>Junior Sec day $/yr</label><input type="number" id="a_juniorD" value="650"></div>
+        <div><label>Junior Sec boarding $/yr</label><input type="number" id="a_juniorB" value="750"></div>
+        <div><label>Senior Sec day $/yr</label><input type="number" id="a_seniorD" value="700"></div>
+        <div><label>Senior Sec boarding $/yr</label><input type="number" id="a_seniorB" value="1000"></div>
+        <div><label>Masters tuition KES/yr</label><input type="number" id="mastersTuition" value="300000" step="10000"></div>
+        <div><label>Specialty tuition KES/yr</label><input type="number" id="specialtyTuition" value="300000" step="10000"></div>
+      </div>
+      <p class="note">Basic-education values are Anaweza's all-in annual support (fees plus upkeep). University tuition uses the verified 2025 cluster fees built in. Postgraduate is not band-funded.</p>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Cohorts (Generations)</h2>
+    <div id="cohorts"></div>
+    <button class="btn" id="addCohort">+ Add cohort</button>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Results</h2>
+    <div class="kpis">
+      <div><div class="lab">Organization peak year</div><div class="v" id="peak">--</div><div class="note" id="peakYr"></div></div>
+      <div><div class="lab">Total over window</div><div class="v" id="grand">--</div></div>
+      <div><div class="lab">Scholars (all cohorts)</div><div class="v" id="heads">--</div></div>
+    </div>
+    <h2>Cost per cohort, per year</h2>
+    <div class="legend" id="legend"></div>
+    <div id="chart"></div>
+    <h2>Per-cohort totals (over window)</h2>
+    <div class="cohortTotals" id="cohortTotals"></div>
+    <h2>Who pays for higher-education tuition (over window) <span class="info" title="Splits higher-education tuition into the government scholarship, the HELB loan, and Anaweza's share. Basic-education tuition is government-funded; Anaweza's basic-ed cost is upkeep. Living, setup, and bridge are always Anaweza.">i</span></h2>
+    <div class="breakdown"><div class="bdbar" id="bdbar"></div><div class="note" id="bdtext"></div></div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Supporting material &amp; reference</h2>
+    <details><summary>Need bands and cost share</summary>
+      <table class="ref"><thead><tr><th>Band</th><th>Govt scholarship</th><th>HELB loan</th><th>Household (Anaweza)</th><th>Maintenance loan KES/yr</th></tr></thead>
+      <tbody>
+      <tr><td>1 (most vulnerable)</td><td>70%</td><td>25%</td><td>5%</td><td>60,000</td></tr>
+      <tr><td>2</td><td>60%</td><td>30%</td><td>10%</td><td>55,000</td></tr>
+      <tr><td>3</td><td>50%</td><td>30%</td><td>20%</td><td>50,000</td></tr>
+      <tr><td>4</td><td>40%</td><td>30%</td><td>30%</td><td>45,000</td></tr>
+      <tr><td>5 (least needy)</td><td>30%</td><td>30%</td><td>40%</td><td>40,000</td></tr>
+      </tbody></table>
+      <p class="note">Percentages apply to the programme tuition; the maintenance loan is a fixed living amount the student borrows.</p>
+    </details>
+    <details><summary>University fee clusters (revised 2025, annual)</summary>
+      <table class="ref" id="clusterRef"><thead><tr><th>Cluster</th><th>Annual min (KES)</th><th>Annual max (KES)</th><th>Max (USD)</th></tr></thead><tbody></tbody></table>
+      <p class="note">Per-semester fees doubled to annual. Source: revised 2025 public-university fee structure.</p>
+    </details>
+    <details><summary>Why these default cost projections</summary>
+      <p class="gl">All figures are Anaweza's all-in annual support per scholar (USD), editable above. Defaults and rationale:</p>
+      <table class="ref"><thead><tr><th>Level</th><th>Default $/yr</th><th>Why</th></tr></thead><tbody>
+      <tr><td>Lower Primary (G1-3)</td><td>500</td><td>Public day-primary tuition is government-funded; cost is uniforms, books, supplies and a modest upkeep stipend.</td></tr>
+      <tr><td>Upper Primary (G4-6)</td><td>550</td><td>As lower primary, with slightly higher materials.</td></tr>
+      <tr><td>Junior Secondary day (G7-9)</td><td>650</td><td>JSS tuition is capitation-funded and JSS is overwhelmingly day (domiciled in primary schools); cost is uniforms, transport, materials, upkeep.</td></tr>
+      <tr><td>Junior Secondary boarding</td><td>750</td><td>JSS boarding is uncommon in Kenya, so this is a small premium that rarely applies.</td></tr>
+      <tr><td>Senior Secondary day (G10-12)</td><td>700</td><td>Day tuition is government-funded since 2026; cost is upkeep, exams, materials.</td></tr>
+      <tr><td>Senior Secondary boarding</td><td>1,000</td><td>Boarding is standard and the costly tier at senior level: the 2026 gazette puts a boarding bill near 75,800 KES (about $592), plus Anaweza upkeep and extras.</td></tr>
+      </tbody></table>
+      <p class="note">University tuition uses the verified 2025 cluster fees; postgraduate uses an editable placeholder. Calibration: applied to a college-heavy cohort these blend toward the ~$1,796 per child Anaweza actually spent in 2025. They cover the scholar's costs, not organization-wide overhead.</p>
+    </details>
+    <details><summary>Postgraduate and specialty costs</summary>
+      <p class="gl">Masters and PhD are not band-funded. HELB offers a competitive partial postgraduate scholarship (~200,000 KES Masters, ~450,000 KES PhD), not guaranteed. Master of Medicine (specialty, ~4 yr) tuition runs ~247,000 to 345,000 KES/yr (University of Nairobi) or ~211,000 KES/yr (Aga Khan). Registrars are often self- or county-sponsored.</p>
+    </details>
+    <details><summary>Funding model and legal status</summary>
+      <p class="gl">The new Student-Centred Funding Model replaced the Differentiated Unit Cost (DUC) model in 2023. The High Court declared the new model unconstitutional on 20 Dec 2024; the Court of Appeal stayed that ruling on 26 Mar 2025, so it operates pending appeal. If struck down, a government-placed undergraduate reverts to the old DUC fee of about 16,000 KES/yr, not full fees.</p>
+    </details>
+    <details><summary>Glossary</summary>
+      <p class="gl"><b>Band</b>: need level (1 most vulnerable to 5 least needy) set by the Means Testing Instrument; determines the funding split.<br>
+      <b>Capitation</b>: per-student grant the government pays a school.<br>
+      <b>KUCCPS</b>: the body that places students into government-sponsored university and TVET slots.<br>
+      <b>HELB</b>: Higher Education Loans Board, provides student loans (tuition and maintenance).<br>
+      <b>Universities Fund</b>: awards the government scholarships.<br>
+      <b>DUC</b>: Differentiated Unit Cost, the pre-2023 funding model.<br>
+      <b>Employment Bridge</b>: months of living support at graduation until the first paycheck.<br>
+      <b>Setup</b>: one-time $500 to set up a scholar entering higher education.<br>
+      <b>Graduated stage</b>: already-finished alumni Anaweza still supports for a set number of months in the first year.</p>
+      <p class="src">Sources: <a href="https://www.universitiesfund.go.ke/new-higher-education-funding-model/">Universities Fund</a>; <a href="https://www.businessradar.co.ke/blog/2025/07/31/new-public-university-fees-structure-for-2025-in-kenya-all-you-need-to-know/">2025 cluster fees</a>; <a href="https://www.helb.co.ke/helb-products/helb-scholarships/post-graduate-scholarship/">HELB postgraduate</a>. Verified in Kenya_University_Figures_Verification.md.</p>
+    </details>
+  </div>
+</div>
+
+<script>
+const CLUSTERS=[{n:"Medicine/Dentistry/Vet/Pharmacy",min:24686,max:150000},{n:"Engineering & Surveying",min:28512,max:114048},{n:"Health sciences/nursing",min:28800,max:115200},{n:"Applied sciences & sci education",min:23256,max:93024},{n:"Basic sciences",min:21318,max:85272},{n:"Applied social sciences/law/media",min:19380,max:77520},{n:"Business/education(arts)/economics",min:15050,max:60202},{n:"Applied humanities/psychology",min:13964,max:55854},{n:"Basic humanities",min:11628,max:46512}];
+const TVET=67189, DUC_FEE=16000;
+const BAND={sch:[70,60,50,40,30],loan:[25,30,30,30,30],hh:[5,10,20,30,40],maint:[60000,55000,50000,45000,40000]};
+const PALETTE=["#1F4E5F","#4CA778","#C0504E","#E0A458","#6A7FBF","#8E6Ca8","#3FA7A0","#B5739D"];
+const $=id=>document.getElementById(id);
+const STAGES=[];
+[["lower",3,"Grade ",1],["upper",3,"Grade ",4],["junior",3,"Grade ",7],["senior",3,"Grade ",10]].forEach(([lv,n,pre,base])=>{for(let i=1;i<=n;i++)STAGES.push({v:lv+":"+i,t:pre+(base+i-1)});});
+[["university",4,"University Yr "],["tvet",2,"Diploma/TVET Yr "],["masters",2,"Masters Yr "],["specialty",4,"Specialty Yr "]].forEach(([lv,n,pre])=>{for(let i=1;i<=n;i++)STAGES.push({v:lv+":"+i,t:pre+i});});
+STAGES.push({v:"graduated:0",t:"Graduated (living support)"});
+
+function settings(){return {placement:$("placement").value,loans:$("loans").value,livingMo:Math.max(0,+$("livingMo").value),bridgeMo:Math.max(0,+$("bridgeMo").value),setupUSD:Math.max(0,+$("setupUSD").value),fx:Math.max(1,+$("fx").value||128),startYear:+$("startYear").value,horizon:(isNaN(parseInt($("horizon").value))?12:Math.max(1,Math.min(25,parseInt($("horizon").value)))),feeLevel:"max",manualCollegeUSD:Math.max(0,+$("manualCollegeUSD").value),mastersTuition:+$("mastersTuition").value,specialtyTuition:+$("specialtyTuition").value,A:{lower:+$("a_lower").value,upper:+$("a_upper").value,juniorD:+$("a_juniorD").value,juniorB:+$("a_juniorB").value,seniorD:+$("a_seniorD").value,seniorB:+$("a_seniorB").value}};}
+function feeVal(ci,lvl){const c=CLUSTERS[ci]||CLUSTERS[0];return lvl==='min'?c.min:c.max;}
+function higherEd(type,o){if(type==="university"&&o.model==="manual"){const m=(o.manualCollegeUSD||0)*(o.fx||128);return {anaweza:m,gov:0,loan:0,tuition:m};}const livingAnnual=o.livingMo*12;let base=type==='university'?feeVal(o.cluster,o.feeLevel):type==='tvet'?TVET:type==='masters'?o.mastersTuition:o.specialtyTuition;let gov=0,loan=0,aTu=0,aLiv=0;
+ if(type==='masters'||type==='specialty'){aTu=base;aLiv=livingAnnual;}
+ else if(o.placement==='self'){aTu=base;aLiv=livingAnnual;}
+ else if(o.model==='duc'){aTu=DUC_FEE;gov=Math.max(0,base-DUC_FEE);aLiv=livingAnnual;}
+ else{const b=o.band;gov=BAND.sch[b]/100*base;const lt=BAND.loan[b]/100*base,hh=BAND.hh[b]/100*base,mt=BAND.maint[b];if(o.loans==='full'){aTu=hh+lt;aLiv=livingAnnual;loan=0;}else{aTu=hh;aLiv=Math.max(0,livingAnnual-mt);loan=lt+mt;}}
+ return {anaweza:aTu+aLiv,gov,loan,tuition:base};}
+function basicKES(level,boarding,A,fx){let usd=level==='lower'?A.lower:level==='upper'?A.upper:level==='junior'?(boarding?A.juniorB:A.juniorD):(boarding?A.seniorB:A.seniorD);return {anaweza:usd*fx,gov:0,loan:0,tuition:0};}
+function gradeLevel(g){return g<=3?'lower':g<=6?'upper':g<=9?'junior':'senior';}
+function buildPath(g){
+ const [L,yr]=g.stage.split(":");const y=+yr;
+ if(L==='graduated')return [{kind:'grad'}];
+ const path=[];let sg=null,heType=null,heLeft=0;
+ if(L==='lower')sg=y;else if(L==='upper')sg=3+y;else if(L==='junior')sg=6+y;else if(L==='senior')sg=9+y;else{heType=L;heLeft=({university:4,tvet:2,masters:2,specialty:4}[L])-(y-1);}
+ if(sg!==null){for(let gr=sg;gr<=12;gr++)path.push({kind:'basic',level:gradeLevel(gr),boarding:g.boarding});
+  if(g.undergrad==='university')for(let i=0;i<4;i++)path.push({kind:'he',type:'university'});else if(g.undergrad==='tvet')for(let i=0;i<2;i++)path.push({kind:'he',type:'tvet'});
+  if(g.undergrad!=='none'){if(g.postgrad==='masters')for(let i=0;i<2;i++)path.push({kind:'he',type:'masters'});else if(g.postgrad==='specialty')for(let i=0;i<4;i++)path.push({kind:'he',type:'specialty'});}}
+ else{for(let i=0;i<heLeft;i++)path.push({kind:'he',type:heType});if(g.postgrad==='masters'&&heType!=='masters')for(let i=0;i<2;i++)path.push({kind:'he',type:'masters'});else if(g.postgrad==='specialty'&&heType!=='specialty')for(let i=0;i<4;i++)path.push({kind:'he',type:'specialty'});}
+ if(sg!==null||y===1){const f=path.findIndex(s=>s.kind==='he');if(f>=0)path[f].setup=true;}
+ if(path.length)path[path.length-1].bridge=true;
+ return path;}
+function yearCost(st,g,S,model){
+ if(st.kind==='grad')return {anaweza:(g.gradMonths||0)*S.livingMo,gov:0,loan:0};
+ if(st.kind==='basic')return basicKES(st.level,st.boarding,S.A,S.fx);
+ const ctx={cluster:g.cluster,band:g.band,feeLevel:S.feeLevel,model:model||"new",placement:S.placement,loans:S.loans,livingMo:S.livingMo,mastersTuition:S.mastersTuition,specialtyTuition:S.specialtyTuition,fx:S.fx,manualCollegeUSD:S.manualCollegeUSD};
+ return higherEd(st.type,ctx);}
+function projectCohort(c,S){const yrs=Array.from({length:S.horizon},()=>({anaweza:0,gov:0,loan:0,once:0}));
+ for(const g of c.groups){const off=(g.startYear||S.startYear)-S.startYear;const path=buildPath(g);for(let y=0;y<S.horizon;y++){const pi=y-off;if(pi<0||pi>=path.length)continue;const st=path[pi];const r=yearCost(st,g,S,c.model);yrs[y].anaweza+=r.anaweza*g.count;yrs[y].gov+=r.gov*g.count;yrs[y].loan+=r.loan*g.count;if(st.setup)yrs[y].once+=S.setupUSD*S.fx*g.count;if(st.bridge)yrs[y].once+=S.bridgeMo*S.livingMo*g.count;}}
+ return yrs.map(v=>({...v,total:v.anaweza+v.once}));}
+function cohortLifetime(c,S){let tot=0;for(const g of c.groups){const path=buildPath(g);for(let y=0;y<path.length;y++){const st=path[y];const r=yearCost(st,g,S,c.model);tot+=r.anaweza*g.count;if(st.setup)tot+=S.setupUSD*S.fx*g.count;if(st.bridge)tot+=S.bridgeMo*S.livingMo*g.count;}}return tot;}
+function cohortInitial(c,S){let tot=0;for(const g of c.groups){const path=buildPath(g);if(!path.length)continue;const st=path[0];const r=yearCost(st,g,S,c.model);tot+=r.anaweza*g.count;if(st.setup)tot+=S.setupUSD*S.fx*g.count;if(st.bridge)tot+=S.bridgeMo*S.livingMo*g.count;}return tot;}
+
+let cohorts=[
+ {name:"Cohort 1 (Inherited)",model:"manual",groups:[
+   {count:2,stage:"senior:3",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2027},
+   {count:3,stage:"university:1",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2027},
+   {count:1,stage:"university:2",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2027},
+   {count:4,stage:"university:3",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2027},
+   {count:4,stage:"university:4",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2027},
+   {count:20,stage:"graduated:0",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2027}]},
+ {name:"Cohort 2",model:"new",groups:[
+   {count:2,stage:"lower:1",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2027},
+   {count:2,stage:"lower:2",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2027},
+   {count:2,stage:"lower:3",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2027},
+   {count:1,stage:"lower:2",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2028},
+   {count:1,stage:"lower:3",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2028},
+   {count:1,stage:"upper:1",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2028}]},
+ {name:"Cohort 3",model:"new",groups:[
+   {count:2,stage:"upper:1",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2027},
+   {count:2,stage:"upper:2",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2027},
+   {count:2,stage:"upper:3",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2027},
+   {count:1,stage:"upper:3",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2029},
+   {count:1,stage:"junior:1",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2029},
+   {count:1,stage:"junior:2",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2029}]},
+ {name:"Cohort 4",model:"new",groups:[
+   {count:3,stage:"lower:1",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2028},
+   {count:1,stage:"lower:1",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2029},
+   {count:3,stage:"lower:1",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2030},
+   {count:2,stage:"lower:2",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2030}]},
+ {name:"Cohort 5",model:"new",groups:[
+   {count:3,stage:"lower:1",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2031},
+   {count:3,stage:"lower:1",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2032},
+   {count:3,stage:"lower:1",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:2033}]}
+];
+
+function opts(list,sel){return list.map(o=>`<option value="${o.v}" ${o.v==sel?'selected':''}>${o.t}</option>`).join('');}
+function clusterOpts(sel){return CLUSTERS.map((c,i)=>`<option value="${i}" ${i==sel?'selected':''}>${c.n}</option>`).join('');}
+const USD=v=>"$"+Math.round(v).toLocaleString();
+
+function applyA11y(){
+  document.querySelectorAll('.info').forEach(e=>{e.tabIndex=0;e.setAttribute('role','img');if(e.title)e.setAttribute('aria-label',e.title);});
+  document.querySelectorAll('.settings > div').forEach(div=>{const lab=div.querySelector('label'),inp=div.querySelector('input,select');if(lab&&inp){if(!inp.id)inp.id='f_'+Math.random().toString(36).slice(2);lab.setAttribute('for',inp.id);}});
+}
+function renderEditor(){
+  const host=$("cohorts");host.innerHTML="";const gstart=+$("startYear").value||2027;
+  cohorts.forEach((c,ci)=>{
+    const div=document.createElement("div");div.className="cohort";
+    const rows=c.groups.map((g,gi)=>{
+      const isGrad=g.stage.split(":")[0]==='graduated';
+      const tail=isGrad
+        ? `<td colspan="5">Support: <input type="number" min="0" max="12" value="${g.gradMonths}" data-f="gradMonths" style="width:46px"> months once, in year 1 <span class="info" title="Months of living support at 10,500 KES/month, counted only in the first projected year. For alumni who graduated this year and still need support.">i</span></td>`
+        : `<td><input type="checkbox" data-f="boarding" ${g.boarding?'checked':''}></td>
+           <td><select data-f="undergrad"><option value="university" ${g.undergrad=='university'?'selected':''}>University</option><option value="tvet" ${g.undergrad=='tvet'?'selected':''}>Diploma/TVET</option><option value="none" ${g.undergrad=='none'?'selected':''}>Stop after sec.</option></select></td>
+           <td><select data-f="cluster">${clusterOpts(g.cluster)}</select></td>
+           <td><select data-f="band">${[1,2,3,4,5].map(b=>`<option value="${b-1}" ${b-1==g.band?'selected':''}>Band ${b}</option>`).join('')}</select></td>
+           <td><select data-f="postgrad"><option value="none" ${g.postgrad=='none'?'selected':''}>None</option><option value="masters" ${g.postgrad=='masters'?'selected':''}>Masters</option><option value="specialty" ${g.postgrad=='specialty'?'selected':''}>Specialty</option></select></td>`;
+      return `<tr data-ci="${ci}" data-gi="${gi}"><td><input type="number" min="0" value="${g.count}" data-f="count" style="width:48px"></td>
+        <td><select data-f="stage">${opts(STAGES,g.stage)}</select></td>
+        <td><input type="number" data-f="startYear" value="${g.startYear||gstart}" style="width:54px"></td>${tail}
+        <td><button class="x" data-del="${ci}:${gi}">&times;</button></td></tr>`;}).join('');
+    div.innerHTML=`<h3><input value="${c.name}" data-name="${ci}"> <span style="font-size:12px;color:var(--muted)">Funding <span class="info" title="Which higher-education funding system this cohort is under. New (SCFM): band-based scholarship plus HELB loan plus household share, for students who sat KCSE 2022 or later. Old (DUC): continuing students who entered before 2023 pay a small frozen fee (about 16,000 KES/yr) with government covering the rest.">i</span></span> <select data-cmodel="${ci}"><option value="new" ${(c.model||"new")=="new"?"selected":""}>New (SCFM)</option><option value="duc" ${c.model=="duc"?"selected":""}>Old (DUC)</option><option value="manual" ${c.model=="manual"?"selected":""}>Manual ($)</option></select> <button class="x" data-delc="${ci}" title="delete cohort">delete</button></h3>
+      <div class="cmeta" id="cmeta-${ci}"></div>
+      <table class="groups"><thead><tr><th>#</th><th>Current stage <span class="info" title="Where each scholar is now. Pick a grade, a higher-education year, or Graduated. Scholars advance one grade per year from here.">i</span></th><th>Intake <span class="info" title="The calendar year this class-group is admitted. Each group sets its own intake, so a Generation can be brought in over several years, for example a Grade 1 group in 2028, another in 2029, another in 2030.">i</span></th><th>Board <span class="info" title="Checked means boarding school for secondary years, which is now the default. Uncheck for day school. Boarding costs more and really only applies at senior secondary; junior-secondary boarding is uncommon in Kenya.">i</span></th><th>After secondary <span class="info" title="What the group does after Grade 12: university (set the cluster), diploma/TVET, or stop after secondary.">i</span></th><th>Uni cluster <span class="info" title="Course group, which sets university tuition. Medicine is the most expensive; humanities the least.">i</span></th><th>Band <span class="info" title="Need band 1 to 5 used when this group is in higher education. The government may not grant a low band, so test the range.">i</span></th><th>Postgrad <span class="info" title="Optional Masters or specialty (Master of Medicine) after the undergraduate degree. Not band-funded, so Anaweza largely pays it.">i</span></th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <button class="btn sm ghost" data-addg="${ci}" style="margin-top:8px">+ Add class-group</button>
+      <div style="margin-top:6px;font-size:12px;color:var(--muted)">Rolling intake: <input type="number" class="roll-start" value="${gstart}" style="width:62px"> start yr, <input type="number" class="roll-years" value="3" style="width:46px"> yrs, <input type="number" class="roll-count" value="3" style="width:46px"> kids/yr <button class="btn sm" data-roll="${ci}">+ Add rolling intake</button> <span class="info" title="Adds one Grade 1 class-group per year, starting in the chosen year, for the number of years given, at the kids-per-year you set. Models bringing a Generation in over several years; you can change each group afterward.">i</span></div>
+      <details style="margin-top:6px"><summary style="font-size:12px">Set all in this Generation (bulk edit)</summary><div style="font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px"><span>Band <select class="bk-band"><option value="0">1</option><option value="1">2</option><option value="2">3</option><option value="3">4</option><option value="4">5</option></select><button class="btn sm" data-bulkc="${ci}" data-bulkf="band">apply</button></span> <span>Cluster <select class="bk-cluster">${clusterOpts(6)}</select><button class="btn sm" data-bulkc="${ci}" data-bulkf="cluster">apply</button></span> <span>After-sec <select class="bk-undergrad"><option value="university">Univ</option><option value="tvet">TVET</option><option value="none">Stop</option></select><button class="btn sm" data-bulkc="${ci}" data-bulkf="undergrad">apply</button></span> <span>Postgrad <select class="bk-postgrad"><option value="none">None</option><option value="masters">Masters</option><option value="specialty">Specialty</option></select><button class="btn sm" data-bulkc="${ci}" data-bulkf="postgrad">apply</button></span> <span>Board <select class="bk-boarding"><option value="true">Boarding</option><option value="false">Day</option></select><button class="btn sm" data-bulkc="${ci}" data-bulkf="boarding">apply</button></span></div></details>`;
+    host.appendChild(div);
+  });
+  bindEditor();applyA11y();
+}
+function bindEditor(){
+  $("cohorts").querySelectorAll("tr[data-ci]").forEach(tr=>{const ci=+tr.dataset.ci,gi=+tr.dataset.gi;
+    tr.querySelectorAll("[data-f]").forEach(el=>el.addEventListener("input",()=>{const f=el.dataset.f;const v=el.type==='checkbox'?el.checked:(f==='count'?Math.max(0,+el.value):f==='gradMonths'?Math.max(0,Math.min(12,+el.value)):f==='startYear'?+el.value:['cluster','band'].includes(f)?+el.value:el.value);cohorts[ci].groups[gi][f]=v;if(f==='stage')renderEditor();compute();}));});
+  $("cohorts").querySelectorAll("[data-name]").forEach(el=>el.addEventListener("input",()=>{cohorts[+el.dataset.name].name=el.value;compute();}));
+  $("cohorts").querySelectorAll("[data-cmodel]").forEach(el=>el.addEventListener("change",()=>{cohorts[+el.dataset.cmodel].model=el.value;compute();}));
+  $("cohorts").querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",()=>{const [ci,gi]=b.dataset.del.split(":").map(Number);cohorts[ci].groups.splice(gi,1);renderEditor();compute();}));
+  $("cohorts").querySelectorAll("[data-delc]").forEach(b=>b.addEventListener("click",()=>{cohorts.splice(+b.dataset.delc,1);renderEditor();compute();}));
+  $("cohorts").querySelectorAll("[data-addg]").forEach(b=>b.addEventListener("click",()=>{cohorts[+b.dataset.addg].groups.push({count:3,stage:"lower:1",boarding:true,undergrad:"university",cluster:6,band:2,postgrad:"none",gradMonths:6});renderEditor();compute();}));
+  $("cohorts").querySelectorAll("[data-roll]").forEach(b=>b.addEventListener("click",()=>{const ci=+b.dataset.roll,card=b.closest(".cohort"),sy=+card.querySelector(".roll-start").value||2028,ny=Math.max(1,Math.min(15,+card.querySelector(".roll-years").value||1)),ct=Math.max(0,+card.querySelector(".roll-count").value||0);for(let i=0;i<ny;i++)cohorts[ci].groups.push({count:ct,stage:"lower:1",boarding:true,undergrad:"university",cluster:6,band:0,postgrad:"none",gradMonths:6,startYear:sy+i});renderEditor();compute();}));
+  $("cohorts").querySelectorAll("[data-bulkc]").forEach(b=>b.addEventListener("click",()=>{const ci=+b.dataset.bulkc,field=b.dataset.bulkf,card=b.closest(".cohort"),sel=card.querySelector(".bk-"+field);let val;if(field==="band"||field==="cluster")val=+sel.value;else if(field==="boarding")val=sel.value==="true";else val=sel.value;cohorts[ci].groups.forEach(g=>{g[field]=val;});renderEditor();compute();}));
+}
+$("addCohort").addEventListener("click",()=>{cohorts.push({name:"New cohort "+(cohorts.length+1),startYear:(+$("startYear").value||2027),model:"new",groups:[]});renderEditor();compute();});
+
+function compute(){
+  const S=settings();
+  const per=cohorts.map(c=>projectCohort(c,S));
+  const yrTotals=[];for(let y=0;y<S.horizon;y++){let t=0;per.forEach(p=>t+=p[y].total);yrTotals.push(t/S.fx);}
+  const peakV=Math.max(...yrTotals,0),peakI=yrTotals.indexOf(peakV);
+  $("peak").textContent=USD(peakV);$("peakYr").textContent="year "+(S.startYear+peakI);
+  $("grand").textContent=USD(yrTotals.reduce((a,b)=>a+b,0));
+  let heads=0;cohorts.forEach(c=>c.groups.forEach(g=>heads+=g.count));$("heads").textContent=heads;
+  $("legend").innerHTML=cohorts.map((c,i)=>`<span><span class="sw" style="background:${PALETTE[i%PALETTE.length]}"></span>${c.name}</span>`).join('');
+  drawChart(per,S,peakV);{const cc=$('chart');cc.setAttribute('role','img');cc.setAttribute('aria-label','Annual program cost by cohort from '+S.startYear+' to '+(S.startYear+S.horizon-1)+'. Peak '+USD(peakV)+' in '+(S.startYear+peakI)+'. Hover bars for per-year totals.');}
+  $("cohortTotals").innerHTML=cohorts.map((c,i)=>{const tot=per[i].reduce((a,b)=>a+b.total,0)/S.fx;return `<div class="ct"><span class="sw" style="background:${PALETTE[i%PALETTE.length]}"></span> ${c.name}<b>${USD(tot)}</b><span class="note">over window</span></div>`;}).join('');
+  // per-cohort initial + lifetime
+  cohorts.forEach((c,i)=>{const el=$("cmeta-"+i);if(!el)return;let fi=per[i].findIndex(v=>v.total>0);if(fi<0)fi=0;const init=per[i][fi].total/S.fx;const life=cohortLifetime(c,S)/S.fx;el.innerHTML=`Cost in ${S.startYear+fi}: <b>${USD(init)}</b> &nbsp; Lifetime (full education): <b>${USD(life)}</b>`;});
+  // funding breakdown (HE tuition only)
+  let gov=0,tloan=0,atu=0,tuit=0;
+  cohorts.forEach((c)=>{c.groups.forEach(g=>{const off=(g.startYear||S.startYear)-S.startYear;const path=buildPath(g);
+    for(let y=0;y<S.horizon;y++){const pi=y-off;if(pi<0||pi>=path.length)continue;const st=path[pi];if(st.kind!=='he')continue;
+      const base=st.type==='university'?(c.model==='manual'?S.manualCollegeUSD*S.fx:feeVal(g.cluster,S.feeLevel)):st.type==='tvet'?TVET:st.type==='masters'?S.mastersTuition:S.specialtyTuition;
+      let gG=0,lL=0,aA=0;
+      if(st.type==='university'&&c.model==='manual'){aA=base;}
+      else if(st.type==='masters'||st.type==='specialty'){aA=base;}
+      else if(S.placement==='self'){aA=base;}
+      else if(c.model==='duc'){gG=Math.max(0,base-DUC_FEE);aA=DUC_FEE;}
+      else{const b=g.band,lt=BAND.loan[b]/100*base,hh=BAND.hh[b]/100*base;gG=BAND.sch[b]/100*base;if(S.loans==='full'){aA=hh+lt;}else{lL=lt;aA=hh;}}
+      gov+=gG*g.count;tloan+=lL*g.count;atu+=aA*g.count;tuit+=base*g.count;}})});
+  const tot=Math.max(1,tuit);
+  const seg=(v,c,lab)=>`<div style="width:${(v/tot*100).toFixed(1)}%;background:${c}" title="${lab}"></div>`;
+  $("bdbar").innerHTML=seg(gov,"#4CA778","gov scholarship")+seg(tloan,"#E0A458","HELB tuition loan")+seg(atu,"#1F4E5F","Anaweza");
+  $("bdtext").innerHTML=`Total HE tuition <b>${USD(tuit/S.fx)}</b> &nbsp;|&nbsp; <span style="color:#4CA778">Gov scholarship ${USD(gov/S.fx)}</span> &nbsp; <span style="color:#E0A458">HELB tuition loan ${USD(tloan/S.fx)}</span> &nbsp; <span style="color:#1F4E5F">Anaweza ${USD(atu/S.fx)}</span>`;
+}
+function drawChart(per,S,peakV){
+  const W=Math.max(560,S.horizon*70+60),H=300,padL=54,padB=34,padT=10;
+  const innerH=H-padB-padT,bw=Math.min(48,(W-padL-10)/S.horizon-8),maxY=peakV>0?peakV*1.1:1;
+  let svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;font-family:Arial">`;
+  for(let k=0;k<=4;k++){const val=maxY*k/4,yy=padT+innerH-(val/maxY*innerH);svg+=`<line x1="${padL}" y1="${yy}" x2="${W-6}" y2="${yy}" stroke="#e2e6e9"/><text x="${padL-6}" y="${yy+3}" font-size="10" fill="#666" text-anchor="end">$${Math.round(val/1000)}k</text>`;}
+  for(let y=0;y<S.horizon;y++){const x=padL+y*((W-padL-10)/S.horizon)+4;let acc=0;
+    let yrTot=0;per.forEach((p,ci)=>{const v=p[y].total/S.fx;if(v<=0)return;const h=v/maxY*innerH;const yy=padT+innerH-acc-h;svg+=`<rect x="${x}" y="${yy}" width="${bw}" height="${h}" fill="${PALETTE[ci%PALETTE.length]}"/>`;acc+=h;yrTot+=v;});
+    const lines=per.map((p,ci)=>({n:cohorts[ci].name,v:p[y].total/S.fx})).filter(o=>o.v>0).map(o=>`  ${o.n}: $${Math.round(o.v).toLocaleString()}`).join(String.fromCharCode(10));
+    svg+=`<rect x="${x}" y="${padT}" width="${bw}" height="${innerH}" fill="#fff" fill-opacity="0" pointer-events="all"><title>${S.startYear+y} total: $${Math.round(yrTot).toLocaleString()}${lines?String.fromCharCode(10)+lines:''}</title></rect>`;
+    svg+=`<text x="${x+bw/2}" y="${H-padB+14}" font-size="10" fill="#666" text-anchor="middle">${S.startYear+y}</text>`;}
+  svg+=`</svg>`;$("chart").innerHTML=svg;
+}
+// cluster reference table
+$("clusterRef").querySelector("tbody").innerHTML=CLUSTERS.map(c=>`<tr><td>${c.n}</td><td>${c.min.toLocaleString()}</td><td>${c.max.toLocaleString()}</td><td>$${Math.round(c.max/128).toLocaleString()}</td></tr>`).join('');
+document.querySelectorAll("#placement,#loans,#livingMo,#bridgeMo,#setupUSD,#fx,#startYear,#horizon,#manualCollegeUSD,#mastersTuition,#specialtyTuition,#a_lower,#a_upper,#a_juniorD,#a_juniorB,#a_seniorD,#a_seniorB").forEach(e=>e.addEventListener("input",compute));
+renderEditor();compute();
+</script>
+</body>
+</html>
